@@ -226,5 +226,15 @@ void VideoWindowHandler::setVideoOnTop( bool on_top )
 {
     if (!m_window)
         return;
+
+    // In embedded mode the interface window handler already owns the on-top
+    // state. Applying VIDEO on-top requests on the same window can race with
+    // compositor updates on X11 and blank/stall rendering.
+    if (m_intf->p_mi && m_intf->p_mi->hasEmbededVideo())
+    {
+        WindowStateHolder::holdOnTop(m_window, WindowStateHolder::VIDEO, false);
+        return;
+    }
+
     WindowStateHolder::holdOnTop(m_window, WindowStateHolder::VIDEO, on_top);
 }
