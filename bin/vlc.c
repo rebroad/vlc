@@ -109,6 +109,7 @@ static void exit_timeout (int signum)
 {
     (void) signum;
     signal (SIGINT, SIG_DFL);
+    signal (SIGTERM, SIG_DFL);
 }
 
 /*****************************************************************************
@@ -268,11 +269,15 @@ int main(int argc, const char *argv[])
     int signum;
     sigwait (&set, &signum);
 
-    /* Restore default signal behaviour after 3 seconds */
+    /* Restore default signal behaviour after 3 seconds.
+     * Keep SIGTERM unblocked/default so a second `kill` can force-exit
+     * immediately if graceful cleanup is stuck. */
     sigemptyset (&set);
     sigaddset (&set, SIGINT);
+    sigaddset (&set, SIGTERM);
     sigaddset (&set, SIGALRM);
     signal (SIGINT, SIG_IGN);
+    signal (SIGTERM, SIG_DFL);
     signal (SIGALRM, exit_timeout);
     pthread_sigmask (SIG_UNBLOCK, &set, NULL);
     alarm (3);

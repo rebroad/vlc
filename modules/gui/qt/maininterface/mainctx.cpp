@@ -739,6 +739,17 @@ void MainCtx::setInterfaceAlwaysOnTop( bool on_top )
         return;
 
     b_interfaceOnTop = on_top;
+
+    /* Keep the vout "video-on-top" command in sync so detached/native video
+     * windows follow the same always-on-top state as the interface action. */
+    config_PutInt("video-on-top", on_top ? 1 : 0);
+    if (p_intf->p_mainPlayerController)
+    {
+        const auto vouts = p_intf->p_mainPlayerController->getVouts();
+        for (const auto &vout : vouts)
+            var_SetBool(vout.get(), "video-on-top", on_top);
+    }
+
     emit interfaceAlwaysOnTopChanged(on_top);
 }
 
